@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+**/__pycache__/
+
+# Environments
+.env
+
+# Virtual envs
+venv/
+.venv/
+env/
+
+facturas/
+temp/
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*.so
+*.dylib
+
+# OS files
+.DS_Store
+Thumbs.db

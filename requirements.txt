@@ -1,0 +1,12 @@
+fastapi==0.118.0
+python-dotenv==1.1.1
+langgraph==0.6.8
+pydantic-settings==2.11.0
+PyMuPDF==1.26.4
+openai==2.1.0
+openpyxl==3.1.5
+asyncpg==0.30.0
+python-multipart==0.0.20
+uvicorn==0.37.0 
+pdfplumber==0.11.4
+PyPDF2==3.0.1

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Facturas - Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Procesador de Facturas</h1>
+            <p>Extrae datos automáticamente o completa manualmente</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sección de Upload -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        <strong>Arrastra tu factura aquí</strong><br>
+                        o haz clic para seleccionar<br>
+                        <small>Solo archivos PDF</small>
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" accept=".pdf" />
+                
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    🔎 Seleccionar Archivo
+                </button>
+
+                <div class="loading-spinner" id="loadingSpinner"></div>
+                
+                <div class="status-indicator" id="statusIndicator"></div>
+
+                <!-- Progress indicator -->
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Iniciando procesamiento...</div>
+                </div>
+            </div>
+
+            <!-- Sección del Formulario -->
+            <div class="form-section">
+                <h3 style="margin-bottom: 25px; color: #495057;">Datos de la Factura</h3>
+                
+                <form id="facturaForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="codigo">DNI o RUC</label>
+                            <input type="text" id="codigo" name="codigo" placeholder="Ej: 20123456789">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="distrito">Distrito</label>
+                            <input type="text" id="distrito" name="distrito" placeholder="Ej: SAN ISIDRO">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="nombre_empresa">Nombre / Empresa</label>
+                            <input type="text" id="nombre_empresa" name="nombre_empresa" placeholder="Ej: GARCIA LOPEZ, JUAN CARLOS">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="direccion">Dirección</label>
+                            <input type="text" id="direccion" name="direccion" placeholder="Ej: AV. JAVIER PRADO ESTE 123">
+                        </div>
+
+                        <!-- NUEVO: Sección de Items -->
+                        <div class="form-group full-width">
+                            <label style="display: flex; justify-content: space-between; align-items: center;">
+                                <span>Items de la Factura</span>
+                                <button type="button" class="btn-small" onclick="addItemRow()">+ Agregar Item</button>
+                            </label>
+                            
+                            <div class="items-table-container">
+                                <table class="items-table" id="itemsTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">Descripción</th>
+                                            <th style="width: 15%;">Cantidad</th>
+                                            <th style="width: 20%;">Precio Unit.</th>
+                                            <th style="width: 20%;">Subtotal</th>
+                                            <th style="width: 5%;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsTableBody">
+                                        <!-- Los items se agregarán dinámicamente aquí -->
+                                        <tr class="item-row" data-index="0">
+                                            <td>
+                                                <input type="text" name="item_descripcion_0" placeholder="Ej: SERVICIO DE CONSULTORIA" class="table-input">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="item_cantidad_0" placeholder="1" step="1" min="1" class="table-input" onchange="calculateItemSubtotal(0)">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="item_precio_0" placeholder="1500.00" step="0.01" class="table-input" onchange="calculateItemSubtotal(0)">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="item_subtotal_0" placeholder="1500.00" step="0.01" class="table-input" readonly>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn-delete" onclick="removeItemRow(0)" title="Eliminar">×</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- NUEVO: Forma de Pago -->
+                        <div class="form-group">
+                            <label for="forma_pago">Forma de Pago</label>
+                            <select id="forma_pago" name="forma_pago">
+                                <option value="">Seleccionar...</option>
+                                <option value="CONTADO">Contado</option>
+                                <option value="CREDITO">Crédito</option>
+                                <option value="TARJETA">Tarjeta</option>
+                                <option value="EFECTIVO">Efectivo</option>
+                                <option value="TRANSFERENCIA">Transferencia</option>
+                                <option value="YAPE">Yape</option>
+                                <option value="PLIN">Plin</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="moneda">Moneda</label>
+                            <select id="moneda" name="moneda">
+                                <option value="">Seleccionar...</option>
+                                <option value="PEN">PEN (Soles)</option>
+                                <option value="USD">USD (Dólares)</option>
+                                <option value="EUR">EUR (Euros)</option>
+                                <option value="GBP">GBP (Libras Esterlinas)</option>
+                                <option value="JPY">JPY (Yenes)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subtotal">Subtotal</label>
+                            <input type="number" id="subtotal" name="subtotal" placeholder="Ej: 1500.00" step="0.01" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="igv">IGV (18%)</label>
+                            <input type="number" id="igv" name="igv" placeholder="Ej: 270.00" step="0.01" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="porcentaje_detraccion">% Detracción</label>
+                            <input type="number" id="porcentaje_detraccion" name="porcentaje_detraccion" placeholder="Ej: 4.00" step="0.01" min="0" max="100">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="monto_detraccion">Monto Detracción</label>
+                            <input type="number" id="monto_detraccion" name="monto_detraccion" placeholder="Ej: 60.00" step="0.01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="total">Total</label>
+                            <input type="number" id="total" name="total" placeholder="Ej: 1770.00" step="0.01" readonly>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                            Limpiar
+                        </button>
+                        <button type="submit" class="btn">
+                            Guardar Datos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
